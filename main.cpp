@@ -11,7 +11,6 @@ private:
     int cantidad;
 
 public:
-    // Constructor
     Repuesto() {
         codigo = "";
         nombre = "";
@@ -19,17 +18,15 @@ public:
         cantidad = 0;
     }
 
-    // Setters
-    void setCodigo(string c)        { codigo = c; }
-    void setNombre(string n)        { nombre = n; }
-    void setPrecio(double p)        { precioUnitario = p; }
-    void setCantidad(int c)         { cantidad = c; }
+    void setCodigo(string c)    { codigo = c; }
+    void setNombre(string n)    { nombre = n; }
+    void setPrecio(double p)    { precioUnitario = p; }
+    void setCantidad(int c)     { cantidad = c; }
 
-    // Getters
-    string getCodigo()              { return codigo; }
-    string getNombre()              { return nombre; }
-    double getPrecio()              { return precioUnitario; }
-    int getCantidad()               { return cantidad; }
+    string getCodigo()          { return codigo; }
+    string getNombre()          { return nombre; }
+    double getPrecio()          { return precioUnitario; }
+    int getCantidad()           { return cantidad; }
 };
 
 // ==================== CLASE ORDENTALLER ====================
@@ -42,16 +39,12 @@ private:
     double horasManoObra;
     double costoPorHora;
     string estado;
-    double descuento;
-    double impuesto;
 
-    // Repuestos usados en esta orden
     string repuestosUsados[5];
     int cantidadRepuestos[5];
     int numRepuestos;
 
 public:
-    // Constructor
     OrdenTaller() {
         placa = "";
         cliente = "";
@@ -60,12 +53,9 @@ public:
         horasManoObra = 0.0;
         costoPorHora = 0.0;
         estado = "pendiente";
-        descuento = 0.0;
-        impuesto = 0.0;
         numRepuestos = 0;
     }
 
-    // Setters
     void setPlaca(string p)         { placa = p; }
     void setCliente(string c)       { cliente = c; }
     void setCedula(string c)        { cedula = c; }
@@ -74,7 +64,6 @@ public:
     void setCostoPorHora(double c)  { costoPorHora = c; }
     void setEstado(string e)        { estado = e; }
 
-    // Getters
     string getPlaca()               { return placa; }
     string getCliente()             { return cliente; }
     string getCedula()              { return cedula; }
@@ -83,10 +72,9 @@ public:
     double getCostoPorHora()        { return costoPorHora; }
     string getEstado()              { return estado; }
     int getNumRepuestos()           { return numRepuestos; }
-    double getDescuento()           { return descuento; }
-    double getImpuesto()            { return impuesto; }
+    string getRepuestoNombre(int i) { return repuestosUsados[i]; }
+    int getRepuestoCantidad(int i)  { return cantidadRepuestos[i]; }
 
-    // Agregar repuesto a la orden
     void agregarRepuesto(string nombre, int cant) {
         if (numRepuestos < 5) {
             repuestosUsados[numRepuestos] = nombre;
@@ -95,9 +83,202 @@ public:
         }
     }
 
-    string getRepuestoNombre(int i) { return repuestosUsados[i]; }
-    int getRepuestoCantidad(int i)  { return cantidadRepuestos[i]; }
+    // Calcula el costo de mano de obra
+    double getCostoManoObra() {
+        return horasManoObra * costoPorHora;
+    }
+
+    // Calcula costo de repuestos buscando precio en el arreglo global
+    double getCostoRepuestos(Repuesto repuestos[], int numRep) {
+        double total = 0;
+        for (int i = 0; i < numRepuestos; i++) {
+            for (int j = 0; j < numRep; j++) {
+                if (repuestosUsados[i] == repuestos[j].getNombre()) {
+                    total += repuestos[j].getPrecio() * cantidadRepuestos[i];
+                }
+            }
+        }
+        return total;
+    }
+
+    // Calcula el valor final con descuento e impuesto
+    double getValorFinal(Repuesto repuestos[], int numRep) {
+        double subtotal = getCostoManoObra() + getCostoRepuestos(repuestos, numRep);
+        double descuento = 0;
+        if (tipoServicio == "preventivo") descuento = subtotal * 0.10;
+        else if (tipoServicio == "express") descuento = subtotal * 0.05;
+        double impuesto = (subtotal - descuento) * 0.15;
+        return subtotal - descuento + impuesto;
+    }
+
+    // Clasifica la reparacion segun valor final
+    string getClasificacion(Repuesto repuestos[], int numRep) {
+        double valor = getValorFinal(repuestos, numRep);
+        if (valor < 100) return "Menor";
+        else if (valor <= 500) return "Moderada";
+        else return "Mayor";
+    }
 };
+
+// ==================== ARREGLOS GLOBALES ====================
+const int MAX = 50;
+Repuesto repuestos[MAX];
+OrdenTaller ordenes[MAX];
+int numRepuestos = 0;
+int numOrdenes = 0;
+
+// ==================== REGISTRAR REPUESTO ====================
+void registrarRepuesto() {
+    if (numRepuestos >= MAX) {
+        cout << "\nNo hay espacio para mas repuestos." << endl;
+        return;
+    }
+
+    string codigo, nombre;
+    double precio;
+    int cantidad;
+
+    cout << "\n===== REGISTRAR REPUESTO =====" << endl;
+
+    cout << "Codigo: ";
+    cin >> codigo;
+
+    // Validar que no exista ya ese codigo
+    for (int i = 0; i < numRepuestos; i++) {
+        if (repuestos[i].getCodigo() == codigo) {
+            cout << "Ya existe un repuesto con ese codigo." << endl;
+            return;
+        }
+    }
+
+    cout << "Nombre: ";
+    cin.ignore();
+    getline(cin, nombre);
+
+    do {
+        cout << "Precio unitario: ";
+        cin >> precio;
+        if (precio <= 0) cout << "El precio debe ser mayor a 0." << endl;
+    } while (precio <= 0);
+
+    do {
+        cout << "Cantidad en stock: ";
+        cin >> cantidad;
+        if (cantidad < 0) cout << "La cantidad no puede ser negativa." << endl;
+    } while (cantidad < 0);
+
+    repuestos[numRepuestos].setCodigo(codigo);
+    repuestos[numRepuestos].setNombre(nombre);
+    repuestos[numRepuestos].setPrecio(precio);
+    repuestos[numRepuestos].setCantidad(cantidad);
+    numRepuestos++;
+
+    cout << "Repuesto registrado correctamente." << endl;
+}
+
+// ==================== REGISTRAR ORDEN ====================
+void registrarOrden() {
+    if (numOrdenes >= MAX) {
+        cout << "\nNo hay espacio para mas ordenes." << endl;
+        return;
+    }
+
+    string placa, cliente, cedula, tipoServicio;
+    double horas, costoPorHora;
+
+    cout << "\n===== REGISTRAR ORDEN DE TRABAJO =====" << endl;
+
+    cout << "Placa del vehiculo: ";
+    cin >> placa;
+
+    cout << "Nombre del cliente: ";
+    cin.ignore();
+    getline(cin, cliente);
+
+    cout << "Cedula del cliente: ";
+    cin >> cedula;
+
+    cout << "Tipo de servicio (preventivo/correctivo/express): ";
+    cin >> tipoServicio;
+    while (tipoServicio != "preventivo" && tipoServicio != "correctivo" && tipoServicio != "express") {
+        cout << "Tipo invalido. Ingrese preventivo, correctivo o express: ";
+        cin >> tipoServicio;
+    }
+
+    do {
+        cout << "Horas de mano de obra: ";
+        cin >> horas;
+        if (horas <= 0) cout << "Las horas deben ser mayor a 0." << endl;
+    } while (horas <= 0);
+
+    do {
+        cout << "Costo por hora: ";
+        cin >> costoPorHora;
+        if (costoPorHora <= 0) cout << "El costo debe ser mayor a 0." << endl;
+    } while (costoPorHora <= 0);
+
+    ordenes[numOrdenes].setPlaca(placa);
+    ordenes[numOrdenes].setCliente(cliente);
+    ordenes[numOrdenes].setCedula(cedula);
+    ordenes[numOrdenes].setTipoServicio(tipoServicio);
+    ordenes[numOrdenes].setHoras(horas);
+    ordenes[numOrdenes].setCostoPorHora(costoPorHora);
+
+    // Agregar repuestos a la orden
+    char agregar;
+    cout << "Desea agregar repuestos a la orden? (s/n): ";
+    cin >> agregar;
+
+    while (agregar == 's' && ordenes[numOrdenes].getNumRepuestos() < 5) {
+        if (numRepuestos == 0) {
+            cout << "No hay repuestos registrados aun." << endl;
+            break;
+        }
+        cout << "\nRepuestos disponibles:" << endl;
+        for (int i = 0; i < numRepuestos; i++) {
+            cout << "  " << i+1 << ". " << repuestos[i].getNombre()
+                 << " - $" << repuestos[i].getPrecio() << endl;
+        }
+        string nombreRep;
+        int cantRep;
+        cout << "Nombre del repuesto: ";
+        cin.ignore();
+        getline(cin, nombreRep);
+        do {
+            cout << "Cantidad: ";
+            cin >> cantRep;
+            if (cantRep <= 0) cout << "La cantidad debe ser mayor a 0." << endl;
+        } while (cantRep <= 0);
+
+        ordenes[numOrdenes].agregarRepuesto(nombreRep, cantRep);
+        cout << "Agregar otro repuesto? (s/n): ";
+        cin >> agregar;
+    }
+
+    numOrdenes++;
+    cout << "\nOrden registrada correctamente." << endl;
+}
+
+// ==================== MOSTRAR ORDEN ====================
+void mostrarOrden(int i) {
+    cout << "\n--- Orden #" << i+1 << " ---" << endl;
+    cout << "Placa:          " << ordenes[i].getPlaca() << endl;
+    cout << "Cliente:        " << ordenes[i].getCliente() << endl;
+    cout << "Cedula:         " << ordenes[i].getCedula() << endl;
+    cout << "Tipo servicio:  " << ordenes[i].getTipoServicio() << endl;
+    cout << "Horas:          " << ordenes[i].getHoras() << endl;
+    cout << "Costo/hora:     $" << ordenes[i].getCostoPorHora() << endl;
+    cout << "Estado:         " << ordenes[i].getEstado() << endl;
+    cout << "Repuestos usados:" << endl;
+    for (int j = 0; j < ordenes[i].getNumRepuestos(); j++) {
+        cout << "  - " << ordenes[i].getRepuestoNombre(j)
+             << " x" << ordenes[i].getRepuestoCantidad(j) << endl;
+    }
+    cout << "Costo mano obra: $" << ordenes[i].getCostoManoObra() << endl;
+    cout << "Costo repuestos: $" << ordenes[i].getCostoRepuestos(repuestos, numRepuestos) << endl;
+    cout << "Valor final:     $" << ordenes[i].getValorFinal(repuestos, numRepuestos) << endl;
+    cout << "Clasificacion:   " << ordenes[i].getClasificacion(repuestos, numRepuestos) << endl;
+}
 
 // ==================== MENU AHORCADO ====================
 void menuAhorcado() {
@@ -124,8 +305,8 @@ void menuPrincipal() {
         cin >> opcion;
 
         switch (opcion) {
-            case 1: cout << "\n[Registrar repuesto - en construccion]" << endl; break;
-            case 2: cout << "\n[Registrar orden - en construccion]" << endl; break;
+            case 1: registrarRepuesto(); break;
+            case 2: registrarOrden(); break;
             case 3: cout << "\n[Buscar orden - en construccion]" << endl; break;
             case 4: cout << "\n[Ordenar ordenes - en construccion]" << endl; break;
             case 5: cout << "\n[Historial - en construccion]" << endl; break;
