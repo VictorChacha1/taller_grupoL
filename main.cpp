@@ -279,7 +279,102 @@ void mostrarOrden(int i) {
     cout << "Valor final:     $" << ordenes[i].getValorFinal(repuestos, numRepuestos) << endl;
     cout << "Clasificacion:   " << ordenes[i].getClasificacion(repuestos, numRepuestos) << endl;
 }
+// ==================== BUSCAR ORDEN ====================
+void buscarOrden() {
+    int opcion;
+    cout << "\n===== BUSCAR ORDEN =====" << endl;
+    cout << "1. Buscar por placa" << endl;
+    cout << "2. Buscar por cedula" << endl;
+    cout << "Opcion: ";
+    cin >> opcion;
 
+    string busqueda;
+    bool encontrado = false;
+
+    if (opcion == 1) {
+        cout << "Ingrese la placa: ";
+        cin >> busqueda;
+        for (int i = 0; i < numOrdenes; i++) {
+            if (ordenes[i].getPlaca() == busqueda) {
+                mostrarOrden(i);
+                encontrado = true;
+            }
+        }
+    } else if (opcion == 2) {
+        cout << "Ingrese la cedula: ";
+        cin >> busqueda;
+        for (int i = 0; i < numOrdenes; i++) {
+            if (ordenes[i].getCedula() == busqueda) {
+                mostrarOrden(i);
+                encontrado = true;
+            }
+        }
+    } else {
+        cout << "Opcion invalida." << endl;
+        return;
+    }
+
+    if (!encontrado) {
+        cout << "No se encontraron ordenes." << endl;
+    }
+}
+
+// ==================== ORDENAR ORDENES ====================
+void ordenarOrdenes() {
+    if (numOrdenes < 2) {
+        cout << "\nNo hay suficientes ordenes para ordenar." << endl;
+        return;
+    }
+
+    // Ordenamiento burbuja por mayor valor final
+    for (int i = 0; i < numOrdenes - 1; i++) {
+        for (int j = 0; j < numOrdenes - 1 - i; j++) {
+            double valorA = ordenes[j].getValorFinal(repuestos, numRepuestos);
+            double valorB = ordenes[j+1].getValorFinal(repuestos, numRepuestos);
+            if (valorA < valorB) {
+                OrdenTaller temp = ordenes[j];
+                ordenes[j] = ordenes[j+1];
+                ordenes[j+1] = temp;
+            }
+        }
+    }
+
+    cout << "\nOrdenes ordenadas por mayor costo:" << endl;
+    for (int i = 0; i < numOrdenes; i++) {
+        cout << i+1 << ". " << ordenes[i].getPlaca()
+             << " - " << ordenes[i].getCliente()
+             << " - $" << ordenes[i].getValorFinal(repuestos, numRepuestos)
+             << " - " << ordenes[i].getClasificacion(repuestos, numRepuestos)
+             << endl;
+    }
+}
+
+// ==================== VER HISTORIAL ====================
+void verHistorial() {
+    if (numOrdenes == 0) {
+        cout << "\nNo hay ordenes registradas." << endl;
+        return;
+    }
+
+    cout << "\n===== HISTORIAL DE ORDENES =====" << endl;
+    for (int i = 0; i < numOrdenes; i++) {
+        mostrarOrden(i);
+    }
+
+    // Ordenes con baja rentabilidad (valor final menor a 100)
+    cout << "\n--- Ordenes con baja rentabilidad ---" << endl;
+    bool hayBaja = false;
+    for (int i = 0; i < numOrdenes; i++) {
+        if (ordenes[i].getValorFinal(repuestos, numRepuestos) < 100) {
+            cout << "  Placa: " << ordenes[i].getPlaca()
+                 << " - Cliente: " << ordenes[i].getCliente()
+                 << " - Valor: $" << ordenes[i].getValorFinal(repuestos, numRepuestos)
+                 << endl;
+            hayBaja = true;
+        }
+    }
+    if (!hayBaja) cout << "  Ninguna orden con baja rentabilidad." << endl;
+}
 // ==================== MENU AHORCADO ====================
 void menuAhorcado() {
     cout << "\n===== MODULO AHORCADO - TALLER =====" << endl;
@@ -307,9 +402,9 @@ void menuPrincipal() {
         switch (opcion) {
             case 1: registrarRepuesto(); break;
             case 2: registrarOrden(); break;
-            case 3: cout << "\n[Buscar orden - en construccion]" << endl; break;
-            case 4: cout << "\n[Ordenar ordenes - en construccion]" << endl; break;
-            case 5: cout << "\n[Historial - en construccion]" << endl; break;
+            case 3: buscarOrden(); break;
+            case 4: ordenarOrdenes(); break;
+            case 5: verHistorial(); break;
             case 6: menuAhorcado(); break;
             case 0: cout << "\nCerrando sistema..." << endl; break;
             default: cout << "\nOpcion invalida. Intente de nuevo." << endl;
