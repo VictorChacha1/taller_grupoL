@@ -375,6 +375,29 @@ void verHistorial() {
     }
     if (!hayBaja) cout << "  Ninguna orden con baja rentabilidad." << endl;
 }
+
+// ==================== FRAGMENTO CORREGIDO ====================
+// Errores corregidos:
+// 1. Falta punto y coma en linea del impuesto
+// 2. Retornaba manoObra en lugar de total
+// 3. No validaba que descuento no supere el subtotal
+double totalOrden(double manoObra, double repuestos, double descuento) {
+    double subtotal = manoObra + repuestos;
+    if (descuento > subtotal) descuento = subtotal;
+    double total = subtotal - descuento;
+    total = total + total * 0.15;
+    if (total < 0) total = 0;
+    return total;
+}
+
+// ==================== FUNCION RECURSIVA ====================
+// Suma el valor total de todas las ordenes de forma recursiva
+double sumarTotalOrdenes(int indice) {
+    if (indice >= numOrdenes) return 0;
+    return ordenes[indice].getValorFinal(repuestos, numRepuestos) 
+           + sumarTotalOrdenes(indice + 1);
+}
+
 // ==================== MENU AHORCADO ====================
 void menuAhorcado() {
     cout << "\n===== MODULO AHORCADO - TALLER =====" << endl;
@@ -393,7 +416,8 @@ void menuPrincipal() {
         cout << "  3. Buscar orden" << endl;
         cout << "  4. Ordenar ordenes" << endl;
         cout << "  5. Ver historial" << endl;
-        cout << "  6. Modulo Ahorcado" << endl;
+        cout << "  6. Total facturado (recursivo)" << endl;
+        cout << "  7. Modulo Ahorcado" << endl;
         cout << "  0. Salir" << endl;
         cout << "----------------------------------------" << endl;
         cout << "  Opcion: ";
@@ -405,7 +429,11 @@ void menuPrincipal() {
             case 3: buscarOrden(); break;
             case 4: ordenarOrdenes(); break;
             case 5: verHistorial(); break;
-            case 6: menuAhorcado(); break;
+            case 6: 
+                cout << "\nTotal facturado en todas las ordenes: $" 
+                     << sumarTotalOrdenes(0) << endl; 
+                    break;
+            case 7: menuAhorcado(); break;
             case 0: cout << "\nCerrando sistema..." << endl; break;
             default: cout << "\nOpcion invalida. Intente de nuevo." << endl;
         }
